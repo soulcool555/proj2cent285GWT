@@ -25,6 +25,7 @@ import com.google.gwt.user.client.ui.Label;
 import com.google.gwt.user.client.ui.HorizontalPanel;
 import com.google.gwt.view.client.SingleSelectionModel;
 import com.google.gwt.view.client.SelectionChangeEvent;
+import com.google.gwt.user.client.ui.Frame;
 
 public class Proj2 implements EntryPoint, ClickHandler
 {
@@ -57,6 +58,7 @@ public class Proj2 implements EntryPoint, ClickHandler
    TextBox deptBox = new TextBox();
    Button editButton = new Button("Edit Worker");
    Button deleteButton = new Button("Delete");
+   Button loginButton = new Button("Submit");
    MyWorker selectedWorker;
    public void onModuleLoad()
    {
@@ -66,8 +68,8 @@ public class Proj2 implements EntryPoint, ClickHandler
       editSubmitButton.addClickHandler(this);
       editButton.addClickHandler(this);
       deleteButton.addClickHandler(this);
-      String url = "http://localhost:3000/workers.json";
-      getRequest(url);
+      loginButton.addClickHandler(this);
+      showLoginForm();
    }
    public void onClick(ClickEvent e) {
 	   Object source = e.getSource();
@@ -111,6 +113,14 @@ public class Proj2 implements EntryPoint, ClickHandler
 		   String url = "http://localhost:3000/workers/destroy";
 		   postRequest(url,encData);
 	   }
+	   else if (source == loginButton) {
+		   String encData = URL.encode("username") + "=" +
+	               URL.encode(userBox.getText()) + "&" +
+	               URL.encode("password") + "=" +
+	               URL.encode(passBox.getText());
+		   String url = "http://localhost:3000/workers/login";
+		   postloginRequest(url,encData);
+	   }
    }
    private void postRequest(String url, String data)
    {
@@ -136,6 +146,40 @@ public class Proj2 implements EntryPoint, ClickHandler
       }
       catch (final Exception e) {
          Window.alert(e.getMessage());  
+      }
+   }
+   private void postloginRequest(String url, String data)
+   {
+      final RequestBuilder rb =
+         new RequestBuilder(RequestBuilder.POST,url);
+      rb.setHeader("Content-type",
+               "application/x-www-form-urlencoded");
+      try {
+         rb.sendRequest(data, new RequestCallback()
+         {
+            public void onError(final Request request,
+               final Throwable exception)
+            {
+               Window.alert(exception.getMessage());
+            }
+            public void onResponseReceived(final Request request,
+               final Response response){
+               int id = Integer.parseInt(response.getText());
+               if (id == 1) {
+                  String url = "http://localhost:3000/workers.json";
+                  getRequest(url);
+               }
+               else if (id > 1) {
+                  Frame frame = new Frame("http://localhost:3000/workshops/summary");
+                  RootPanel.get().add(frame);
+                  mainPanel.clear();
+                  mainPanel.add(frame);
+               }
+            }
+         });
+      }
+      catch (final Exception e) {
+         Window.alert(e.getMessage());
       }
    }
    private void getRequest(String url)
@@ -197,6 +241,23 @@ public class Proj2 implements EntryPoint, ClickHandler
 	  else {
 		 editPanel.add(addSubmitButton);
 	  }
+	  mainPanel.clear();
+	  mainPanel.add(editPanel);
+   }
+   private void showLoginForm()	 
+   {
+	  VerticalPanel editPanel = new VerticalPanel();
+	  HorizontalPanel row1 = new HorizontalPanel();
+	  Label userLabel = new Label("Username: ");
+	  row1.add(userLabel);
+	  row1.add(userBox);
+	  editPanel.add(row1);
+	  HorizontalPanel row2 = new HorizontalPanel();
+	  Label passLabel = new Label("Password: ");
+	  row2.add(passLabel);
+	  row2.add(passBox);
+	  editPanel.add(row2);
+      editPanel.add(loginButton);
 	  mainPanel.clear();
 	  mainPanel.add(editPanel);
    }

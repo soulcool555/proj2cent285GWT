@@ -289,6 +289,8 @@ public class Proj2 implements EntryPoint, ClickHandler
                return worker.name;
             }
          };
+      nameColumn.setSortable(true);
+      
       TextColumn<MyWorker> usernameCol =
          new TextColumn<MyWorker>()
          {
